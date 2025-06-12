@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
+const quizzesRouter = require('./routes/quizzes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,3 +32,5 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+app.use(quizzesRouter);
