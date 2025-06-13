@@ -61,4 +61,18 @@ router.put('/api/quizzes/:quizId', async (req, res) => {
   }
 });
 
+// DELETE /api/quizzes/:quizId
+router.delete('/api/quizzes/:quizId', async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    const quiz = await Quiz.findOneAndDelete({ _id: quizId });
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+    res.json({ message: 'Quiz deleted successfully', quiz });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete quiz', details: err.message });
+  }
+});
+
 module.exports = router; 
