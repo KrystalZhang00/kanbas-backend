@@ -7,7 +7,17 @@ const router = express.Router();
 router.get('/api/courses/:courseId/quizzes', async (req, res) => {
   try {
     const { courseId } = req.params;
-    const quizzes = await Quiz.find({ course: courseId });
+    const { role } = req.query; // Get user role from query parameter
+    
+    let filter = { course: courseId };
+    
+    // Students should only see published quizzes
+    if (role === 'STUDENT') {
+      filter.published = true;
+    }
+    // Faculty/Admin can see all quizzes (published and unpublished)
+    
+    const quizzes = await Quiz.find(filter);
     res.json(quizzes);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch quizzes', details: err.message });

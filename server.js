@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const quizzesRouter = require('./routes/quizzes');
+const quizAttemptsRouter = require('./routes/quizAttempts');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,4 +34,6 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+// Routes
 app.use(quizzesRouter);
+app.use(quizAttemptsRouter);

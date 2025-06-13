@@ -26,6 +26,8 @@ const QuizSchema = new mongoose.Schema({
   shuffleAnswers: Boolean,
   timeLimit: Number,
   attempts: Number,
+  multipleAttempts: Boolean,
+  showCorrectAnswers: String,
 });
 
 module.exports = mongoose.model('Quiz', QuizSchema); 
