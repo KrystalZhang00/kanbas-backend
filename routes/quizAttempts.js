@@ -52,12 +52,12 @@ router.post('/api/quizzes/:quizId/attempts', async (req, res) => {
       return res.status(404).json({ error: 'Quiz not found' });
     }
 
-    // Check if quiz is available
-    const now = new Date();
+    // Check if quiz is available using user's local time (from startTime)
+    const userTime = new Date(startTime); // Use user's local time instead of server time
     const availableFrom = quiz.availableFrom ? new Date(quiz.availableFrom) : null;
     const availableUntil = quiz.availableUntil ? new Date(quiz.availableUntil) : null;
     
-    if ((availableFrom && now < availableFrom) || (availableUntil && now > availableUntil)) {
+    if ((availableFrom && userTime < availableFrom) || (availableUntil && userTime > availableUntil)) {
       return res.status(400).json({ error: 'Quiz is not available at this time' });
     }
 
@@ -88,7 +88,7 @@ router.post('/api/quizzes/:quizId/attempts', async (req, res) => {
 router.put('/api/quiz-attempts/:attemptId/submit', async (req, res) => {
   try {
     const { attemptId } = req.params;
-    const { answers } = req.body;
+    const { answers, submitTime } = req.body;
 
     // Get the attempt
     const attempt = await QuizAttempt.findById(attemptId);
@@ -102,11 +102,11 @@ router.put('/api/quiz-attempts/:attemptId/submit', async (req, res) => {
       return res.status(404).json({ error: 'Quiz not found' });
     }
 
-    // Check if quiz is still available
-    const now = new Date();
+    // Check if quiz is still available using user's local time
+    const userSubmitTime = submitTime ? new Date(submitTime) : new Date();
     const dueDate = quiz.dueDate ? new Date(quiz.dueDate) : null;
     
-    if (dueDate && now > dueDate) {
+    if (dueDate && userSubmitTime > dueDate) {
       return res.status(400).json({ error: 'Quiz is past due date' });
     }
 
@@ -114,7 +114,7 @@ router.put('/api/quiz-attempts/:attemptId/submit', async (req, res) => {
     const { score, totalPoints, answers: processedAnswers } = calculateResults(quiz, answers);
 
     // Update attempt
-    attempt.endTime = now;
+    attempt.endTime = userSubmitTime;
     attempt.score = score;
     attempt.totalPoints = totalPoints;
     attempt.answers = processedAnswers;
