@@ -72,7 +72,7 @@ router.post('/api/quizzes/:quizId/attempts', async (req, res) => {
       _id: Date.now().toString(),
       quiz: quizId,
       user,
-      startTime: new Date(startTime),
+      startTime: startTime,
       totalPoints: quiz.points || 0,
       answers: [],
       attemptNumber
@@ -113,8 +113,16 @@ router.put('/api/quiz-attempts/:attemptId/submit', async (req, res) => {
     // Calculate results
     const { score, totalPoints, answers: processedAnswers } = calculateResults(quiz, answers);
 
-    // Update attempt
-    attempt.endTime = userSubmitTime;
+    // Update attempt - store as string to maintain consistency
+    attempt.endTime = submitTime || (() => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    })();
     attempt.score = score;
     attempt.totalPoints = totalPoints;
     attempt.answers = processedAnswers;
