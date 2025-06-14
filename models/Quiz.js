@@ -28,6 +28,12 @@ const QuizSchema = new mongoose.Schema({
   attempts: Number,
   multipleAttempts: Boolean,
   showCorrectAnswers: String,
+  quizType: { type: String, enum: ['Graded Quiz', 'Practice Quiz', 'Graded Survey', 'Ungraded Survey'], default: 'Graded Quiz' },
+  assignmentGroup: { type: String, enum: ['Quizzes', 'Exams', 'Assignments', 'Project'], default: 'Quizzes' },
+  accessCode: { type: String, default: '' },
+  oneQuestionAtTime: { type: Boolean, default: true },
+  webcamRequired: { type: Boolean, default: false },
+  lockQuestionsAfterAnswering: { type: Boolean, default: false }
 });
 
 module.exports = mongoose.model('Quiz', QuizSchema); 

@@ -3,6 +3,20 @@ const Quiz = require('../models/Quiz');
 
 const router = express.Router();
 
+// Middleware to check if user has faculty/admin permissions
+const requireFacultyRole = (req, res, next) => {
+  const { role } = req.query;
+  // Check if body has userRole, if yes use it, if not use query role
+  const userRole = req.body && req.body.userRole ? req.body.userRole : role;
+  
+  if (userRole !== 'FACULTY' && userRole !== 'ADMIN') {
+    return res.status(403).json({ 
+      error: 'Access denied. Faculty or Admin role required for this operation.' 
+    });
+  }
+  next();
+};
+
 // GET /api/courses/:courseId/quizzes
 router.get('/api/courses/:courseId/quizzes', async (req, res) => {
   try {
@@ -24,8 +38,30 @@ router.get('/api/courses/:courseId/quizzes', async (req, res) => {
   }
 });
 
-// POST /api/courses/:courseId/quizzes
-router.post('/api/courses/:courseId/quizzes', async (req, res) => {
+// GET /api/quizzes/:quizId - Get single quiz
+router.get('/api/quizzes/:quizId', async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    const { role } = req.query;
+    
+    const quiz = await Quiz.findOne({ _id: quizId });
+    if (!quiz) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+    
+    // Students can only view published quizzes
+    if (role === 'STUDENT' && !quiz.published) {
+      return res.status(403).json({ error: 'Quiz not available' });
+    }
+    
+    res.json(quiz);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch quiz', details: err.message });
+  }
+});
+
+// POST /api/courses/:courseId/quizzes - FACULTY/ADMIN ONLY
+router.post('/api/courses/:courseId/quizzes', requireFacultyRole, async (req, res) => {
   try {
     const { courseId } = req.params;
     const quizData = req.body;
@@ -44,8 +80,8 @@ router.post('/api/courses/:courseId/quizzes', async (req, res) => {
   }
 });
 
-// PUT /api/quizzes/:quizId
-router.put('/api/quizzes/:quizId', async (req, res) => {
+// PUT /api/quizzes/:quizId - FACULTY/ADMIN ONLY
+router.put('/api/quizzes/:quizId', requireFacultyRole, async (req, res) => {
   try {
     const { quizId } = req.params;
     const updatedQuiz = req.body;
@@ -61,8 +97,8 @@ router.put('/api/quizzes/:quizId', async (req, res) => {
   }
 });
 
-// DELETE /api/quizzes/:quizId
-router.delete('/api/quizzes/:quizId', async (req, res) => {
+// DELETE /api/quizzes/:quizId - FACULTY/ADMIN ONLY
+router.delete('/api/quizzes/:quizId', requireFacultyRole, async (req, res) => {
   try {
     const { quizId } = req.params;
     const quiz = await Quiz.findOneAndDelete({ _id: quizId });
