@@ -18,9 +18,9 @@ const QuizSchema = new mongoose.Schema({
   course: { type: String, required: true }, // course ID
   description: String,
   points: Number,
-  dueDate: Date,
-  availableFrom: Date,
-  availableUntil: Date,
+  dueDate: String,
+  availableFrom: String,
+  availableUntil: String,
   published: Boolean,
   questions: [QuestionSchema],
   shuffleAnswers: Boolean,

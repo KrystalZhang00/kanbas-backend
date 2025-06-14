@@ -54,7 +54,10 @@ router.post('/api/quizzes/:quizId/attempts', async (req, res) => {
 
     // Check if quiz is available
     const now = new Date();
-    if (now < quiz.availableFrom || now > quiz.availableUntil) {
+    const availableFrom = quiz.availableFrom ? new Date(quiz.availableFrom) : null;
+    const availableUntil = quiz.availableUntil ? new Date(quiz.availableUntil) : null;
+    
+    if ((availableFrom && now < availableFrom) || (availableUntil && now > availableUntil)) {
       return res.status(400).json({ error: 'Quiz is not available at this time' });
     }
 
@@ -101,7 +104,9 @@ router.put('/api/quiz-attempts/:attemptId/submit', async (req, res) => {
 
     // Check if quiz is still available
     const now = new Date();
-    if (now > quiz.dueDate) {
+    const dueDate = quiz.dueDate ? new Date(quiz.dueDate) : null;
+    
+    if (dueDate && now > dueDate) {
       return res.status(400).json({ error: 'Quiz is past due date' });
     }
 
