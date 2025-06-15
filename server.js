@@ -29,12 +29,15 @@ const corsOptions = {
   optionsSuccessStatus: 200 // For legacy browser support
 };
 
+// Trust proxy for cloud platforms (Heroku, Render, etc.)
+app.set('trust proxy', 1);
+
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Session configuration
-app.use(session({
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'kambaz-quiz-secret-key',
   resave: false,
   saveUninitialized: false,
@@ -50,7 +53,30 @@ app.use(session({
     domain: process.env.COOKIE_DOMAIN || undefined
   },
   name: 'kambaz.sid' // Custom session name
-}));
+};
+
+console.log('Session configuration:', {
+  ...sessionConfig,
+  secret: '[HIDDEN]',
+  store: 'MongoStore'
+});
+
+// Add middleware to check HTTPS and log request details
+app.use((req, res, next) => {
+  if (req.path.includes('/api/auth/signin')) {
+    console.log('=== SIGNIN REQUEST DEBUG ===');
+    console.log('Protocol:', req.protocol);
+    console.log('Secure:', req.secure);
+    console.log('Headers x-forwarded-proto:', req.headers['x-forwarded-proto']);
+    console.log('Host:', req.get('host'));
+    console.log('Origin:', req.get('origin'));
+    console.log('User-Agent:', req.get('user-agent'));
+    console.log('===============================');
+  }
+  next();
+});
+
+app.use(session(sessionConfig));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)

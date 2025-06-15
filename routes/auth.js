@@ -42,9 +42,24 @@ router.post('/api/auth/signin', async (req, res) => {
       totalActivity: user.totalActivity
     };
 
-    // Return user data (without password)
-    const { password: _, ...userWithoutPassword } = user.toObject();
-    res.json(userWithoutPassword);
+    // Debug session creation
+    console.log('Session created for user:', user.username);
+    console.log('Session ID:', req.sessionID);
+    console.log('Session data:', req.session.currentUser ? 'Set' : 'Not set');
+    
+    // Save session explicitly
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.status(500).json({ error: 'Session save failed' });
+      }
+      
+      console.log('Session saved successfully');
+      
+      // Return user data (without password)
+      const { password: _, ...userWithoutPassword } = user.toObject();
+      res.json(userWithoutPassword);
+    });
 
   } catch (error) {
     console.error('Signin error:', error);
@@ -194,13 +209,17 @@ router.post('/api/auth/logout', (req, res) => {
       console.error('Logout error:', err);
       return res.status(500).json({ error: 'Failed to logout' });
     }
-    res.clearCookie('connect.sid'); // Clear session cookie
+    res.clearCookie('kambaz.sid'); // Clear session cookie with correct name
     res.json({ message: 'Logged out successfully' });
   });
 });
 
 // GET /api/auth/check - Check if user is authenticated
 router.get('/api/auth/check', (req, res) => {
+  console.log('Auth check - Session ID:', req.sessionID);
+  console.log('Auth check - Session exists:', !!req.session);
+  console.log('Auth check - Current user:', req.session.currentUser ? 'Found' : 'Not found');
+  
   if (req.session.currentUser) {
     res.json({ authenticated: true, user: req.session.currentUser });
   } else {
